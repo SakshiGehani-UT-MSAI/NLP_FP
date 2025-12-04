@@ -71,6 +71,33 @@ def main():
         eval_split = 'validation_matched' if dataset_id == ('glue', 'mnli') else 'validation'
         # Load the raw data
         dataset = datasets.load_dataset(*dataset_id)
+
+        # *** NEW CODE: Rename columns and convert labels for 'tasksource/counterfactually-augmented-snli' dataset ***
+        if args.dataset == 'tasksource/counterfactually-augmented-snli':
+            # Define the mapping from string to int
+            label_map = {
+                "entailment": 0,
+                "neutral": 1,
+                "contradiction": 2
+            }
+
+            for split_name in dataset.keys():
+                # 1. Rename the columns
+                dataset[split_name] = dataset[split_name].rename_columns({
+                    'sentence1': 'premise',
+                    'sentence2': 'hypothesis',
+                    'gold_label': 'label'
+                })
+                
+                # 2. Filter out any examples where the label is not in our map 
+                # (This prevents crashes if there are unexpected labels like "-")
+                dataset[split_name] = dataset[split_name].filter(lambda x: x['label'] in label_map)
+
+                # 3. Convert the string labels to integers
+                dataset[split_name] = dataset[split_name].map(lambda x: {'label': label_map[x['label']]})
+                
+            print("Renamed columns and converted string labels to integers for 'tasksource/counterfactually-augmented-snli'.")
+        # *** END NEW CODE ***
     
     # NLI models need to have the output label count specified (label 0 is "entailed", 1 is "neutral", and 2 is "contradiction")
     task_kwargs = {'num_labels': 3} if args.task == 'nli' else {}
