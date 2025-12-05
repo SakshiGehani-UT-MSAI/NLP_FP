@@ -72,7 +72,9 @@ def main():
         # Load the raw data
         dataset = datasets.load_dataset(*dataset_id)
 
-        # *** NEW CODE: Rename columns and convert labels for 'tasksource/counterfactually-augmented-snli' dataset ***
+        # *** NEW CODE: Rename columns and convert labels for 'tasksource/counterfactually-augmented-snli' and 'au123/snli-hard' datasets ***
+        if args.dataset == 'au123/snli-hard':
+          eval_split = 'test'
         if args.dataset == 'tasksource/counterfactually-augmented-snli' or args.dataset == 'au123/snli-hard':
             # Define the mapping from string to int
             label_map = {
