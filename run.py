@@ -73,7 +73,7 @@ def main():
         dataset = datasets.load_dataset(*dataset_id)
 
         # *** NEW CODE: Rename columns and convert labels for 'tasksource/counterfactually-augmented-snli' dataset ***
-        if args.dataset == 'tasksource/counterfactually-augmented-snli':
+        if args.dataset == 'tasksource/counterfactually-augmented-snli' or args.dataset == 'au123/snli-hard':
             # Define the mapping from string to int
             label_map = {
                 "entailment": 0,
@@ -96,7 +96,7 @@ def main():
                 # 3. Convert the string labels to integers
                 dataset[split_name] = dataset[split_name].map(lambda x: {'label': label_map[x['label']]})
                 
-            print("Renamed columns and converted string labels to integers for 'tasksource/counterfactually-augmented-snli'.")
+            print(f"Renamed columns and converted string labels to integers for {args.dataset}.")
         # *** END NEW CODE ***
     
     # NLI models need to have the output label count specified (label 0 is "entailed", 1 is "neutral", and 2 is "contradiction")
@@ -136,7 +136,10 @@ def main():
     train_dataset_featurized = None
     eval_dataset_featurized = None
     if training_args.do_train:
-        train_dataset = dataset['train']
+        if args.dataset == 'au123/snli-hard':
+          train_dataset = dataset['test']
+        else:
+          train_dataset = dataset['train']
         if args.max_train_samples:
             train_dataset = train_dataset.select(range(args.max_train_samples))
         train_dataset_featurized = train_dataset.map(
